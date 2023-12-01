@@ -25,6 +25,11 @@ void GameScene::Initialize() {
 	// グラウンド
 	groundModel_.reset(Model::CreateFromOBJ("ground", true));
 
+	// グラウンド
+	ground_ = std::make_unique<Ground>();
+
+	ground_->Initialize(groundModel_.get());
+
 // playerSprite_ = Sprite::Create(TextureHandle_, {100, 50});
 #pragma endregion
 
@@ -33,15 +38,26 @@ void GameScene::Initialize() {
 	//  自キャラの生成
 	TextureHandle_ = TextureManager::Load("mario.jpg");
 
+	// 3Dモデルの生成
+	// modelPlayer_.reset(Model::CreateFromOBJ("Player", true));
+	modelFighterHead_.reset(Model::CreateFromOBJ("float_Head", true));
+	modelFighterBody_.reset(Model::CreateFromOBJ("float_Body", true));
+	modelFighterL_arm_.reset(Model::CreateFromOBJ("float_L_arm", true));
+	modelFighterR_arm_.reset(Model::CreateFromOBJ("float_R_arm", true));
+
 	player_ = std::make_unique<Player>();
 
-	model_.reset(Model::Create());
-	player_->Initialize(model_.get(), TextureHandle_);
+	//model_.reset(Model::Create());
+	//player_->Initialize(model_.get(), TextureHandle_);
+
+	player_->Initialize(
+	    modelFighterBody_.get(), modelFighterHead_.get(), modelFighterL_arm_.get(),
+	    modelFighterR_arm_.get());
 
 #pragma endregion
 
 #pragma region 天球
-	// 天球
+	
 	skydomeModel_.reset(Model::CreateFromOBJ("skydome", true));
 
 	skydome_ = std::make_unique<Skydome>();
@@ -49,10 +65,7 @@ void GameScene::Initialize() {
 	skydome_->Initialize(skydomeModel_.get());
 #pragma endregion
 
-	// グラウンド
-	ground_ = std::make_unique<Ground>();
-
-	ground_->Initialize(groundModel_.get());
+	
 
 	// フォローカメラ
 	followCamera_ = std::make_unique<FollowCamera>();
