@@ -2,8 +2,8 @@
 #include "TextureManager.h"
 #include <cassert>
 #include "AxisIndicator.h"
-#include "Skydome.h"
-#include "Ground.h"
+//#include "Skydome.h"
+//#include "Ground.h"
 
 GameScene::GameScene() {}
 

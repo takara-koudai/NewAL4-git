@@ -30,6 +30,14 @@ Vector3 Multiply2(const Vector3& v1, const Vector3& v2) {
 	return result;
 }
 
+Vector3 Multiply3(const float& v1, const Vector3& v2) {
+	Vector3 result{};
+	result.x = v1 * v2.x;
+	result.y = v1 * v2.y;
+	result.z = v1 * v2.z;
+	return result;
+}
+
 Vector3 Multiply4(const float& v1, const Vector3& v2) {
 	Vector3 result{};
 	result.x = v1 * v2.x;
@@ -287,11 +295,20 @@ float Length(const Vector3& v) {
 // 正規化
 Vector3 Normalize(const Vector3& v) {
 
-	Vector3 result;
+	Vector3 result = v;
 
-	result.x = v.x / Length(v);
-	result.y = v.y / Length(v);
-	result.z = v.z / Length(v);
+	float len = Length(v);
+
+	if (len != 0)
+	{
+		result.x = v.x / len;
+		result.y = v.y / len;
+		result.z = v.z / len;
+	}
+
+	//Vector3 result;
+
+	
 
 	return result;
 }
@@ -458,12 +475,6 @@ Vector3 Transform(const Vector3 vecter, const Matrix4x4 matrix) {
 	return result;
 };
 
-Vector3 Multiply3(const float& v1, const Vector3& v2) {
-	Vector3 result{};
-	result.x = v1 * v2.x;
-	result.y = v1 * v2.y;
-	result.z = v1 * v2.z;
-	return result;
-}
+
 
 

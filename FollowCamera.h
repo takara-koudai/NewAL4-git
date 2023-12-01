@@ -4,7 +4,7 @@
 #include "MatrixTrans.h"
 #include "Input.h"
 
-class FollowCamera 
+class FollowCamera
 {
 public:
 
@@ -23,13 +23,6 @@ private:
 	//ビュープロジェクション
 	ViewProjection viewProjection_;
 
-	//WorldTransform worldTransform_;
-
 	const WorldTransform* target_ = nullptr;
-
-	//FollowCamera* followCamera_ = nullptr;
-	// キーボード入力
-	Input* input_ = nullptr;
-
 
 };

@@ -2,7 +2,7 @@
 #include <cassert>
 #include "MatrixTrans.h"
 #include "ImGuiManager.h"
-#include <Xinput.h>
+//#include <Xinput.h>
 
 Player::Player() {}
 
@@ -26,32 +26,33 @@ void Player::Initialize(Model* model, uint32_t textureHandle)
 void Player::Update()
 {
 
-	//ゲームパッドの状態を得る変数
+	// ゲームパッドの状態を得る変数
 	XINPUT_STATE joyState;
 
 	//ゲームパッド状態取得
 	if (Input::GetInstance()->GetJoystickState(0, joyState))
 	{
-		// キャラクターの移動速さ
-		const float speed = 0.3f;
-		// 移動量
-		Vector3 move = {
-		    (float)joyState.Gamepad.sThumbLX / SHRT_MAX * speed, 0.0f,
-		    (float)joyState.Gamepad.sThumbLY / SHRT_MAX * speed};
-		// 移動量に速さを反映
-		move = Normalize(move);
-		move = Multiply4(speed, move);
-
-		// 回転行列
-		Matrix4x4 rotateMatrix = MakeRotateMatrix(viewProjection_->rotation_);
-		// 移動ベクトルをカメラの角度だけ回転
-		move = TransformNormal(move, rotateMatrix);
-
-		// 移動
-		worldTransform_.translation_ = Add(worldTransform_.translation_, move);
-
-		// playerのY軸周り角度(θy)
-		worldTransform_.rotation_.y = std::atan2(move.x, move.z);
+	    // キャラクターの移動速さ
+	    const float speed = 0.3f;
+	    // 移動量
+	    Vector3 move = {
+	        (float)joyState.Gamepad.sThumbLX / SHRT_MAX * speed, 0.0f,
+	        (float)joyState.Gamepad.sThumbLY / SHRT_MAX * speed
+		};
+	    // 移動量に速さを反映
+	    move = Normalize(move);
+	    move = Multiply3(speed, move);
+	    
+	    // 回転行列
+	    Matrix4x4 rotateMatrix = MakeRotateMatrix(viewProjection_->rotation_);
+	    // 移動ベクトルをカメラの角度だけ回転
+	    move = TransformNormal(move, rotateMatrix);
+	    
+	    // 移動
+	    worldTransform_.translation_ = Add(worldTransform_.translation_, move);
+	    
+	    // playerのY軸周り角度(θy)
+	    worldTransform_.rotation_.y = std::atan2(move.x, move.z);
 
 	}
 
