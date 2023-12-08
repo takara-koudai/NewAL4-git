@@ -21,8 +21,6 @@ void RailCamera::Initialize() {
 
 void RailCamera::Update() {
 
-	// worldTransform_.translation_.z += 0.05f;
-
 	worldTransform_.UpdateMatrix();
 
 	// カメラオブジェクトのワールド行列を計算する

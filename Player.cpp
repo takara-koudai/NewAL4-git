@@ -10,57 +10,41 @@ Player::Player() {}
 
 Player::~Player() {}
 
-void Player::Initialize(Model* modelBody, Model* modelHead, Model* modelL_arm, Model* modelR_arm) { 
+void Player::Initialize(const std::vector<Model*>& models) { 
 	input_ = Input::GetInstance();
 
-	assert(modelBody);
-	assert(modelHead);
-	assert(modelL_arm);
-	assert(modelR_arm);
+	// 基底クラスの初期化
+	BaseCharacter::Initialize(models);
 
-	// 引数として受け取ったデータをメンバ変数に記録する
-	modelFighterBody_ = modelBody;
-	modelFighterHead_ = modelHead;
-	modelFighterL_arm_ = modelL_arm;
-	modelFighterR_arm_ = modelR_arm;
 
-	//playerModel_ = model;
-
-	#pragma region モデルの設定
-
-	// 腕の座標指定
-	worldTransformHead_.translation_.y = 1.5f;
-	worldTransformL_arm_.translation_.x = -0.5f;
-	worldTransformR_arm_.translation_.x = 0.5f;
-	worldTransformL_arm_.translation_.y = 1.3f;
-	worldTransformR_arm_.translation_.y = 1.3f;
-
-#pragma endregion
-	
-	//playerTextureHandle_ = textureHandle;
-
-	//worldTransform_.Initialize();
-
-	//worldTransform_.translation_ = {0.0f, 2.0f, 0.0f};
-
-	// ワールドトランスフォームの初期化
 	worldTransformBase_.Initialize();
-
-	// X,Y,Z方向のスケーリングを設定
-	worldTransformBase_.scale_ = {1.0f, 1.0f, 1.0f};
-	worldTransformBase_.translation_ = {0.0f, 2.0f, -5.0f};
-
 	worldTransformBody_.Initialize();
 	worldTransformHead_.Initialize();
 	worldTransformL_arm_.Initialize();
 	worldTransformR_arm_.Initialize();
 
 
-
-	worldTransformBody_.parent_ = &worldTransformBase_;
+	// 親子関係結ぶ
+	worldTransformBody_.parent_ = &worldTransformBase_; // ボディの親をベースにする
 	worldTransformHead_.parent_ = &worldTransformBody_;
 	worldTransformL_arm_.parent_ = &worldTransformBody_;
 	worldTransformR_arm_.parent_ = &worldTransformBody_;
+
+
+	// 各パーツ位置調整
+	worldTransform_.translation_.x = 1.0f;
+	worldTransform_.translation_.y = 1.0f;
+	worldTransform_.translation_.z = 1.0f;
+
+	worldTransformBody_.translation_ = {0.0f, 1.0f, 0.0f};
+
+
+	// 腕の座標指定
+	worldTransformL_arm_.translation_.x = -0.5f;
+	worldTransformHead_.translation_.y = 1.5f;
+	worldTransformR_arm_.translation_.x = 0.5f;
+	worldTransformL_arm_.translation_.y = 1.3f;
+	worldTransformR_arm_.translation_.y = 1.3f;
 
 }
 
@@ -73,6 +57,7 @@ void Player::Update()
 	//ゲームパッド状態取得
 	if (Input::GetInstance()->GetJoystickState(0, joyState))
 	{
+
 	    // キャラクターの移動速さ
 	    const float speed = 0.3f;
 	    // 移動量
@@ -108,16 +93,23 @@ void Player::Update()
 	worldTransformL_arm_.UpdateMatrix();
 	worldTransformR_arm_.UpdateMatrix();
 
+	BaseCharacter::Update();
+
 }
 
 void Player::Draw(const ViewProjection& viewProjection) 
 {
 	//playerModel_->Draw(worldTransform_, viewProjection, playerTextureHandle_);
 
-	modelFighterBody_->Draw(worldTransformBody_, viewProjection);
-	modelFighterHead_->Draw(worldTransformHead_, viewProjection);
-	modelFighterL_arm_->Draw(worldTransformL_arm_, viewProjection);
-	modelFighterR_arm_->Draw(worldTransformR_arm_, viewProjection);
+	//modelFighterBody_->Draw(worldTransformBody_, viewProjection);
+	//modelFighterHead_->Draw(worldTransformHead_, viewProjection);
+	//modelFighterL_arm_->Draw(worldTransformL_arm_, viewProjection);
+	//modelFighterR_arm_->Draw(worldTransformR_arm_, viewProjection);
+
+	models_[0]->Draw(worldTransformBody_, viewProjection);
+	models_[1]->Draw(worldTransformHead_, viewProjection);
+	models_[2]->Draw(worldTransformL_arm_, viewProjection);
+	models_[3]->Draw(worldTransformR_arm_, viewProjection);
 }
 
 void Player::InitializeFloatingGimmick() 

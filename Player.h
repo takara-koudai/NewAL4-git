@@ -3,8 +3,9 @@
 #include "Model.h"
 #include "ViewProjection.h"
 #include "Input.h"
+#include "BaseCharacter.h"
 
-class Player 
+class Player : public BaseCharacter
 {
 public:
 
@@ -27,11 +28,14 @@ public:
 
 	//void Initialize(Model* model,uint32_t textureHandle);
 
-	void Initialize(Model* modelBody, Model* modelHead, Model* modelL_arm, Model* modelR_arm);
+	//void Initialize(Model* modelBody, Model* modelHead, Model* modelL_arm, Model* modelR_arm);
 
-	void Update();
+	void Initialize(const std::vector<Model*>& models) override;
 
-	void Draw(const ViewProjection& viewProjection);
+	void Update() override ; 
+
+	void Draw(const ViewProjection& viewProjection) override;
+
 
 	// 浮遊ギミック初期化
 	void InitializeFloatingGimmick();

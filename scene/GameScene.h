@@ -14,6 +14,7 @@
 #include "Ground.h"
 #include "FollowCamera.h"
 #include "MatrixTrans.h"
+#include "Enemy.h"
 
 /// <summary>
 /// ゲームシーン
@@ -71,8 +72,12 @@ private: // メンバ変数
 	// Model* model_ = nullptr;
 	std::unique_ptr<Model> model_;
 
-	// Player* player_ = nullptr;
+	// プレイヤー
 	std::unique_ptr<Player> player_;
+
+	// 敵キャラ
+	std::unique_ptr<Enemy> enemy_;
+
 
 	// 天球
 	std::unique_ptr<Skydome> skydome_;
@@ -88,10 +93,20 @@ private: // メンバ変数
 	std::unique_ptr<FollowCamera> followCamera_;
 
 	//3Dモデル
+	//自機
 	std::unique_ptr<Model> modelFighterBody_;
 	std::unique_ptr<Model> modelFighterHead_;
 	std::unique_ptr<Model> modelFighterL_arm_;
 	std::unique_ptr<Model> modelFighterR_arm_;
+
+	
+	//  エネミーモデルデータ
+	std::unique_ptr<Model> modelEnemy_;
+	// エネミーモデル
+	std::unique_ptr<Model> enemyFighterBody_;
+	std::unique_ptr<Model> enemyFighterHead_;
+	std::unique_ptr<Model> enemyFighterL_arm_;
+	std::unique_ptr<Model> enemyFighterR_arm_;
 
 
 	// std::unique_ptr<Model> followCameraModel_;

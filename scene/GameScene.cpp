@@ -30,7 +30,6 @@ void GameScene::Initialize() {
 
 	ground_->Initialize(groundModel_.get());
 
-// playerSprite_ = Sprite::Create(TextureHandle_, {100, 50});
 #pragma endregion
 
 #pragma region 自キャラ
@@ -45,16 +44,42 @@ void GameScene::Initialize() {
 	modelFighterL_arm_.reset(Model::CreateFromOBJ("float_L_arm", true));
 	modelFighterR_arm_.reset(Model::CreateFromOBJ("float_R_arm", true));
 
+	
+	// 自キャラモデル
+	std::vector<Model*> playerModels = {
+	    modelFighterBody_.get(), modelFighterHead_.get(), modelFighterL_arm_.get(),
+	    modelFighterR_arm_.get()
+	};
+
 	player_ = std::make_unique<Player>();
 
-	//model_.reset(Model::Create());
-	//player_->Initialize(model_.get(), TextureHandle_);
+	// 自キャラの初期化
+	player_->Initialize(playerModels);
 
-	player_->Initialize(
-	    modelFighterBody_.get(), modelFighterHead_.get(), modelFighterL_arm_.get(),
-	    modelFighterR_arm_.get());
 
 #pragma endregion
+
+
+#pragma region 敵
+
+	// 敵のモデル生成
+	enemyFighterBody_.reset(Model::CreateFromOBJ("needle_Body", true));
+	enemyFighterL_arm_.reset(Model::CreateFromOBJ("needle_L_arm", true));
+	enemyFighterR_arm_.reset(Model::CreateFromOBJ("needle_R_arm", true));
+
+	// 敵のモデル
+	std::vector<Model*> enemyModels = {
+	    enemyFighterBody_.get(), enemyFighterL_arm_.get(), enemyFighterR_arm_.get()};
+
+	// 敵の生成
+	enemy_ = std::make_unique<Enemy>();
+
+	// 敵の初期化
+	enemy_->Initialize(enemyModels);
+
+
+#pragma endregion
+
 
 #pragma region 天球
 	
@@ -63,6 +88,7 @@ void GameScene::Initialize() {
 	skydome_ = std::make_unique<Skydome>();
 
 	skydome_->Initialize(skydomeModel_.get());
+	
 #pragma endregion
 
 	
@@ -132,6 +158,9 @@ void GameScene::Update()
 
 	// プレイヤー
 	player_->Update();
+
+	// 敵キャラの更新
+	enemy_->Update();
 }
 
 void GameScene::Draw() {
@@ -161,10 +190,18 @@ void GameScene::Draw() {
 	/// ここに3Dオブジェクトの描画処理を追加できる
 	/// </summary>
 
+	//プレイヤー
 	player_->Draw(viewProjection_);
 
+	// 敵の描画
+	enemy_->Draw(viewProjection_);
+
+	//天球
 	skydome_->Draw(viewProjection_);
+
+	//地面
 	ground_->Draw(viewProjection_);
+
 
 	// 3Dオブジェクト描画後処理
 	Model::PostDraw();
