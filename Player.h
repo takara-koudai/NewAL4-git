@@ -4,6 +4,7 @@
 #include "ViewProjection.h"
 #include "Input.h"
 #include "BaseCharacter.h"
+#include <optional>
 
 class Player : public BaseCharacter
 {
@@ -35,7 +36,7 @@ public:
 	void Update() override ; 
 
 	void Draw(const ViewProjection& viewProjection) override;
-
+		
 
 	// 浮遊ギミック初期化
 	void InitializeFloatingGimmick();
@@ -44,6 +45,35 @@ public:
 
 	// 浮遊ギミックの媒介変数
 	float floatingParameter_ = 0.0f;
+
+
+#pragma region 攻撃（ハンマー）
+
+	//通常行動初期化
+	void BehaviorRootInitialize();
+	//通常行動更新
+	void BehaviorRootUpdate();
+
+
+	//攻撃行動初期化
+	void BehaviorAttackInitialize();
+	//攻撃行動更新
+	void BehaviorAttackUpdate();
+
+
+	//振る舞い
+	enum class Behavior {
+		kRoot, //通常攻撃
+		kAttack //攻撃中
+	};
+
+
+	//振る舞い
+	Behavior behavior_ = Behavior::kRoot;
+
+	std::optional<Behavior> behaviorRequest_ = std::nullopt;
+
+#pragma endregion
 
 private:
 
@@ -55,6 +85,9 @@ private:
 	WorldTransform worldTransformHead_;
 	WorldTransform worldTransformL_arm_;
 	WorldTransform worldTransformR_arm_;
+
+	// 武器モデル
+	WorldTransform worldTransformWeapon_;
 
 	//3Dモデル
 	Model* modelFighterBody_ = nullptr;
@@ -74,5 +107,8 @@ private:
 
 	//カメラのビュープロジェクション
 	const ViewProjection* viewProjection_ = nullptr;
+
+	// 攻撃フレーム
+	int attackFrame;
 
 };

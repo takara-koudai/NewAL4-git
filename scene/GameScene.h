@@ -109,6 +109,9 @@ private: // メンバ変数
 	std::unique_ptr<Model> enemyFighterR_arm_;
 
 
+	// 武器モデル
+	std::unique_ptr<Model> modelWeapon_;
+
 	// std::unique_ptr<Model> followCameraModel_;
 
 	// レールカメラ
