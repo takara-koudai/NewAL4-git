@@ -6,6 +6,8 @@
 #include "PrimitiveDrawer.h"
 #include "TextureManager.h"
 #include "WinApp.h"
+#include "TitleScene.h"
+#include "EndScene.h"
 
 // Windowsアプリでのエントリーポイント(main関数)
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
@@ -20,7 +22,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	// ゲームウィンドウの作成
 	win = WinApp::GetInstance();
-	win->CreateGameWindow();
+	win->CreateGameWindow(L"LE2C_タナカ_コウダイ_～撃破～");
 
 	// DirectX初期化処理
 	dxCommon = DirectXCommon::GetInstance();
@@ -61,6 +63,17 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	gameScene = new GameScene();
 	gameScene->Initialize();
 
+	SceneType sceneNo = SceneType::kTitle;
+
+	//タイトルの初期化
+	TitleScene* titleScene = new TitleScene();
+	titleScene->Initialize();
+
+	//終わりの初期化
+	EndScene* endScene = new EndScene();
+	endScene->Initialize();
+
+
 	// メインループ
 	while (true) {
 		// メッセージ処理
@@ -72,8 +85,58 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		imguiManager->Begin();
 		// 入力関連の毎フレーム処理
 		input->Update();
+
 		// ゲームシーンの毎フレーム処理
-		gameScene->Update();
+		//gameScene->Update();
+
+		switch (sceneNo) 
+		{
+		case SceneType::kTitle:
+			titleScene->Update();
+
+			if (titleScene->IsSceneEnd() == true)
+			{
+				//タイトルから次のシーン
+				sceneNo = titleScene->NextScene();
+				
+				//ゲームシーンのリセット
+				endScene->IsSceneEnd();
+				gameScene->Reset();
+
+			}
+
+			break;
+		case SceneType::kGameScene:
+
+			// ゲームシーンの毎フレーム処理
+			gameScene->Update();
+
+			//終わり画面に
+			if (gameScene->IsSceneEnd() == true)
+			{
+				sceneNo = gameScene->NextScene();
+			}
+			
+			break;
+		case SceneType::kEndeScene:
+
+			endScene->Update();
+
+			//タイトル画面に
+			if (endScene->IsSceneEnd() == true)
+			{
+				sceneNo = endScene->NextScene();
+
+				gameScene->IsSceneEnd();
+				gameScene->Reset();
+				titleScene->Reset();
+				endScene->Reset();
+
+			}
+
+			break;
+		}
+
 		// 軸表示の更新
 		axisIndicator->Update();
 		// ImGui受付終了
@@ -81,8 +144,29 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 		// 描画開始
 		dxCommon->PreDraw();
-		// ゲームシーンの描画
-		gameScene->Draw();
+
+		switch (sceneNo) 
+		{
+		case SceneType::kTitle:
+
+			titleScene->Draw();
+
+			break;
+		case SceneType::kGameScene:
+
+			// ゲームシーンの描画
+			gameScene->Draw();
+
+			break;
+		case SceneType::kEndeScene:
+
+			endScene->Draw();
+
+			break;
+		
+		}
+
+		
 		// 軸表示の描画
 		axisIndicator->Draw();
 		// プリミティブ描画のリセット

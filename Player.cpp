@@ -4,11 +4,16 @@
 #include "ImGuiManager.h"
 #define _USE_MATH_DEFINES
 #include "math.h"
-//#include <Xinput.h>
 
 Player::Player() {}
 
-Player::~Player() {}
+Player::~Player() 
+{
+	for (PlayerBullet* bullet : bullets_) 
+	{
+		delete bullet_;
+	}
+}
 
 void Player::Initialize(const std::vector<Model*>& models) { 
 	input_ = Input::GetInstance();
@@ -23,8 +28,7 @@ void Player::Initialize(const std::vector<Model*>& models) {
 	worldTransformR_arm_.Initialize();
 
 	worldTransformWeapon_.Initialize();
-
-
+		
 	// 親子関係結ぶ
 	worldTransformBody_.parent_ = &worldTransformBase_; // ボディの親をベースにする
 	worldTransformHead_.parent_ = &worldTransformBody_;
@@ -32,6 +36,8 @@ void Player::Initialize(const std::vector<Model*>& models) {
 	worldTransformR_arm_.parent_ = &worldTransformBody_;
 	worldTransformWeapon_.parent_ = &worldTransformBody_;
 
+	//
+	//プレイヤーの座標を変えたい
 
 	// 各パーツ位置調整
 	worldTransform_.translation_.x = 1.0f;
@@ -40,29 +46,37 @@ void Player::Initialize(const std::vector<Model*>& models) {
 
 	worldTransformBody_.translation_ = {0.0f, 1.0f, 0.0f};
 
-
 	// 腕の座標指定
-	worldTransformL_arm_.translation_.x = -0.5f;
 	worldTransformHead_.translation_.y = 1.5f;
-	worldTransformR_arm_.translation_.x = 0.5f;
+	worldTransformL_arm_.translation_.x = -0.5f;
 	worldTransformL_arm_.translation_.y = 1.3f;
+	worldTransformR_arm_.translation_.x = 0.5f;
 	worldTransformR_arm_.translation_.y = 1.3f;
-
 
 }
 
 void Player::Update()
 {
 
+	// デスフラグが立った弾を削除
+	bullets_.remove_if([](PlayerBullet* bullet) {
+		if (bullet->IsDead()) {
+			delete bullet;
+			return true;
+		}
+
+		return false;
+	});
+
 	// ゲームパッドの状態を得る変数
 	XINPUT_STATE joyState;
-
+	
 	//ゲームパッド状態取得
 	if (Input::GetInstance()->GetJoystickState(0, joyState))
 	{
 
 	    // キャラクターの移動速さ
-	    const float speed = 0.3f;
+	    const float speed = 0.2f;
 	    // 移動量
 	    Vector3 move = {
 	        (float)joyState.Gamepad.sThumbLX / SHRT_MAX * speed, 0.0f,
@@ -80,11 +94,38 @@ void Player::Update()
 	    // 移動
 	    worldTransformBase_.translation_ = Add(worldTransformBase_.translation_, move);
 	    
-			    // playerのY軸周り角度(θy)
+		// playerのY軸周り角度(θy)
 	    worldTransformBase_.rotation_.y = std::atan2(move.x, move.z);
-				
-	}
 
+		
+		//ダッシュ
+		if (joyState.Gamepad.wButtons == XINPUT_GAMEPAD_B)
+		{
+			// キャラクターの移動速さ
+			const float speedB = 0.8f;
+			// 移動量
+			Vector3 moveB = {
+			    (float)joyState.Gamepad.sThumbLX / SHRT_MAX * speedB, 0.0f,
+			    (float)joyState.Gamepad.sThumbLY / SHRT_MAX * speedB};
+			// 移動量に速さを反映
+			moveB = Normalize(moveB);
+			moveB = Multiply3(speedB, moveB);
+
+			// 回転行列
+			Matrix4x4 rotateMatrixB = MakeRotateMatrix(viewProjection_->rotation_);
+			// 移動ベクトルをカメラの角度だけ回転
+			moveB = TransformNormal(moveB, rotateMatrixB);
+
+			// 移動
+			worldTransformBase_.translation_ = Add(worldTransformBase_.translation_, moveB);
+
+			// playerのY軸周り角度(θy)
+			worldTransformBase_.rotation_.y = std::atan2(moveB.x, moveB.z);
+
+			//worldTransformL_arm_.rotation_.x = std::sin(floatingParameter_) * 0.75f;
+		}
+
+	}
 
 	if (behaviorRequest_) {
 		// 振る舞いを変更する
@@ -101,6 +142,7 @@ void Player::Update()
 			break;
 		case Player::Behavior::kAttack:
 			// 攻撃行動
+
 			BehaviorAttackInitialize();
 
 			break;
@@ -130,6 +172,26 @@ void Player::Update()
 	
 	//UpdateFloatingGimmick();
 
+	//天球とグラウンドの外に出ないように移動制限
+	const float kMoveLimitX = (70.0f);
+	const float kMoveLimitY = (65.0f);
+	const float kMoveLimitZ = (80.0f);
+
+	worldTransformBase_.translation_.x = max(worldTransformBase_.translation_.x, -kMoveLimitX);
+	worldTransformBase_.translation_.x = min(worldTransformBase_.translation_.x, +kMoveLimitX);
+	worldTransformBase_.translation_.y = max(worldTransformBase_.translation_.y, -kMoveLimitY);
+	worldTransformBase_.translation_.y = min(worldTransformBase_.translation_.y, +kMoveLimitY);
+	worldTransformBase_.translation_.z = max(worldTransformBase_.translation_.z, -kMoveLimitZ);
+	worldTransformBase_.translation_.z = min(worldTransformBase_.translation_.z, +kMoveLimitZ);
+
+	// 弾発射
+	Attack(worldTransformBase_.translation_);
+
+	for (PlayerBullet* bullet : bullets_) 
+	{
+		bullet->Update();
+	}
+
 	BaseCharacter::Update();
 
 	// 行列を定数バッファに転送
@@ -139,8 +201,7 @@ void Player::Update()
 	worldTransformL_arm_.UpdateMatrix();
 	worldTransformR_arm_.UpdateMatrix();
 	worldTransformWeapon_.UpdateMatrix();
-
-	
+		
 }
 
 void Player::Draw(const ViewProjection& viewProjection) 
@@ -150,14 +211,48 @@ void Player::Draw(const ViewProjection& viewProjection)
 	models_[2]->Draw(worldTransformL_arm_, viewProjection);
 	models_[3]->Draw(worldTransformR_arm_, viewProjection);
 
-	//models_[4]->Draw(worldTransformWeapon_, viewProjection);
-
+	
 	if (behavior_ == Behavior::kAttack) 
 	{
 		models_[4]->Draw(worldTransformWeapon_, viewProjection);
 	}
+
+	// 弾描画
+	for (PlayerBullet* bullet : bullets_) 
+	{
+		bullet->Draw(viewProjection);
+	}
 }
 
+void Player::Attack(Vector3& position) 
+{
+	// ゲームパッドの状態を得る変数
+	XINPUT_STATE joyStateBullet;
+	armFlag_ = false;
+
+	if (Input::GetInstance()->GetJoystickState(0, joyStateBullet)) {
+
+		if (joyStateBullet.Gamepad.bRightTrigger) 
+		{
+			// 弾の速度
+			const float kBulletSpeed = 1.0f;
+			Vector3 velocity(0, 0, kBulletSpeed);
+
+			// 速度ベクトルを自機の向きに合わせて回転させる
+			velocity = TransformNormal(velocity, worldTransformBase_.matWorld_);
+
+			// 弾を生成し、初期化
+			PlayerBullet* newBullet = new PlayerBullet();
+			newBullet->Initialize(models_[0], position, velocity);
+
+			// 弾を登録する
+			bullets_.push_back(newBullet);
+
+			armFlag_ = true;
+			
+		}
+	}
+}
 
 void Player::InitializeFloatingGimmick() 
 {
@@ -185,8 +280,25 @@ void Player::UpdateFloatingGimmick()
 	worldTransformBody_.translation_.y = std::sin(floatingParameter_) * floatingAmplitude;
 
 	// 腕の動き
-	worldTransformL_arm_.rotation_.x = std::sin(floatingParameter_) * 0.75f;
+	worldTransformL_arm_.rotation_.x = std::sin(floatingParameter_) * -0.75f;
 	worldTransformR_arm_.rotation_.x = std::sin(floatingParameter_) * 0.75f;
+
+
+	if (armFlag_ == true)
+	{
+		worldTransformL_arm_.rotation_.x = std::sin(floatingParameter_) - 0.85f;
+		worldTransformR_arm_.rotation_.x = std::sin(floatingParameter_) - 0.85f;
+	}
+
+	// ゲームパッドの状態を得る変数
+	//XINPUT_STATE joyStateArm;
+	//if (Input::GetInstance()->GetJoystickState(0, joyStateArm)) {
+	//	if (joyStateArm.Gamepad.wButtons == XINPUT_GAMEPAD_B) {
+	//		// 腕の動き
+	//		worldTransformL_arm_.rotation_.x = std::sin(floatingParameter_) + 1.25f;
+	//		worldTransformR_arm_.rotation_.x = std::sin(floatingParameter_) + 1.25f;
+	//	}
+	//}
 }
 
 #pragma region 行動
@@ -214,7 +326,7 @@ void Player::BehaviorRootUpdate()
 	if (Input::GetInstance()->GetJoystickState(0, joyState)) 
 	{
 		// 速さ
-		const float speed = 0.3f;
+		float speed = 0.3f;
 
 		// 移動量
 		Vector3 move
@@ -229,7 +341,8 @@ void Player::BehaviorRootUpdate()
 
 		// 回転行列
 		Matrix4x4 rotateMatrix = MakeRotateMatrix(viewProjection_->rotation_);
-
+		
+		/*
 		if (joyState.Gamepad.wButtons == XINPUT_GAMEPAD_A) 
 		{
 			// 振る舞いリセット
@@ -239,6 +352,7 @@ void Player::BehaviorRootUpdate()
 			worldTransformL_arm_.rotation_.x = 1.0f;
 			worldTransformR_arm_.rotation_.x = 1.0f;
 		}
+		*/
 	}
 
 	// 浮遊ギミックの更新処理
@@ -268,6 +382,8 @@ void Player::BehaviorAttackUpdate()
 		// 武器
 		worldTransformWeapon_.rotation_.x -= 0.05f;
 
+
+
 	} else if (worldTransformWeapon_.rotation_.x <= 2.0f * (float)M_PI / 4) 
 	{
 		// 腕
@@ -284,6 +400,7 @@ void Player::BehaviorAttackUpdate()
 
 	attackFrame++;
 }
+
 #pragma endregion
 
 
@@ -297,4 +414,9 @@ Vector3 Player::GetWorldPosition()
 	worldPos.z = worldTransformBase_.matWorld_.m[3][2];
 
 	return worldPos;
+}
+
+void Player::OnCollision() 
+{ 
+	isDead_ = true;
 }

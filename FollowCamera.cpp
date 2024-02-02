@@ -35,7 +35,6 @@ void FollowCamera::Update()
 		//viewProjection_.rotation_.x += (float)joyState.Gamepad.sThumbRY / SHRT_MAX * kRadian;
 	}
 
-	
 
 	// ビュー行列の更新
 	viewProjection_.UpdateMatrix();

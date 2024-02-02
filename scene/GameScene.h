@@ -15,6 +15,8 @@
 #include "FollowCamera.h"
 #include "MatrixTrans.h"
 #include "Enemy.h"
+#include "Scene.h"
+#include "PlayerBullet.h"
 
 /// <summary>
 /// ゲームシーン
@@ -47,6 +49,18 @@ public: // メンバ関数
 	/// </summary>
 	void Draw();
 
+	//当たり判定
+	void AllOnCollision();
+		
+	Vector3 GetEnemyPopPos() { return enemyPopPos; }
+	void SetEnemyPopPos(Vector3 pos) { enemyPopPos = pos; }
+
+	bool IsSceneEnd() { return isSceneEnd; }
+	void Reset();
+
+	SceneType NextScene() { return SceneType::kEndeScene; }
+	
+	
 private: // メンバ変数
 	DirectXCommon* dxCommon_ = nullptr;
 	Input* input_ = nullptr;
@@ -75,15 +89,25 @@ private: // メンバ変数
 	// プレイヤー
 	std::unique_ptr<Player> player_;
 
+
 	// 敵キャラ
 	std::unique_ptr<Enemy> enemy_;
 
+	//敵を複数に
+	std::list<std::unique_ptr<Enemy>> enemies;
 
+	// 待機タイマ
+	int32_t waitTimer_ = 0;
+	bool isWait = true;
+
+	std::stringstream enemyPopCommands;
+	Vector3 enemyPopPos = {};
+		
 	// 天球
 	std::unique_ptr<Skydome> skydome_;
 
 	std::unique_ptr<Model> skydomeModel_;
-
+	
 	// グラウンド
 	std::unique_ptr<Ground> ground_;
 
@@ -98,8 +122,7 @@ private: // メンバ変数
 	std::unique_ptr<Model> modelFighterHead_;
 	std::unique_ptr<Model> modelFighterL_arm_;
 	std::unique_ptr<Model> modelFighterR_arm_;
-
-	
+		
 	//  エネミーモデルデータ
 	std::unique_ptr<Model> modelEnemy_;
 	// エネミーモデル
@@ -108,14 +131,18 @@ private: // メンバ変数
 	std::unique_ptr<Model> enemyFighterL_arm_;
 	std::unique_ptr<Model> enemyFighterR_arm_;
 
-
 	// 武器モデル
 	std::unique_ptr<Model> modelWeapon_;
+		
+	//敵を倒したカウント
+	int count = 0;
 
-	// std::unique_ptr<Model> followCameraModel_;
+	//時間制限のカウント
+	int endCount = 0;
 
-	// レールカメラ
-	// std::unique_ptr<RailCamera> railCamera_;
+	
+	bool isSceneEnd = false;
+
 
 	/// <summary>
 	/// ゲームシーン用

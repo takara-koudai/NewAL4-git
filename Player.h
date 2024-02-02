@@ -5,6 +5,7 @@
 #include "Input.h"
 #include "BaseCharacter.h"
 #include <optional>
+#include "PlayerBullet.h"
 
 class Player : public BaseCharacter
 {
@@ -36,18 +37,24 @@ public:
 	void Update() override ; 
 
 	void Draw(const ViewProjection& viewProjection) override;
-		
+	
+	// 攻撃
+	void Attack(Vector3& position);
+
+	// 弾リスト
+	const std::list<PlayerBullet*>& GetBullet() const { return bullets_; }
 
 	// 浮遊ギミック初期化
 	void InitializeFloatingGimmick();
 	// 浮遊ギミック更新
 	void UpdateFloatingGimmick();
-
+	
 	// 浮遊ギミックの媒介変数
 	float floatingParameter_ = 0.0f;
 
 
 #pragma region 攻撃（ハンマー）
+
 
 	//通常行動初期化
 	void BehaviorRootInitialize();
@@ -60,7 +67,6 @@ public:
 	//攻撃行動更新
 	void BehaviorAttackUpdate();
 
-
 	//振る舞い
 	enum class Behavior {
 		kRoot, //通常攻撃
@@ -72,6 +78,12 @@ public:
 	Behavior behavior_ = Behavior::kRoot;
 
 	std::optional<Behavior> behaviorRequest_ = std::nullopt;
+
+	//当たり判定
+	void OnCollision();
+
+	//リセット
+	bool Reset() { return isDead_; }
 
 #pragma endregion
 
@@ -95,7 +107,6 @@ private:
 	Model* modelFighterL_arm_ = nullptr;
 	Model* modelFighterR_arm_ = nullptr;
 
-
 	//モデル
 	Model* playerModel_ = nullptr;
 
@@ -111,4 +122,13 @@ private:
 	// 攻撃フレーム
 	int attackFrame;
 
+	bool isDead_ = false;
+
+	// 弾
+	PlayerBullet* bullet_ = nullptr;
+
+	std::list<PlayerBullet*> bullets_;
+
+	bool armFlag_ = false;
+	
 };

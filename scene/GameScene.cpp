@@ -2,8 +2,10 @@
 #include "TextureManager.h"
 #include <cassert>
 #include "AxisIndicator.h"
-//#include "Skydome.h"
-//#include "Ground.h"
+#include <fstream>
+#include <iostream>
+#include <variant>
+
 
 GameScene::GameScene() {}
 
@@ -22,6 +24,7 @@ void GameScene::Initialize() {
 	viewProjection_.UpdateMatrix();
 
 #pragma region グラウンド
+
 	// グラウンド
 	groundModel_.reset(Model::CreateFromOBJ("ground", true));
 
@@ -56,11 +59,8 @@ void GameScene::Initialize() {
 
 	// 自キャラの初期化
 	player_->Initialize(playerModels);
-
-	
-
+		
 #pragma endregion
-
 
 #pragma region 敵
 
@@ -68,6 +68,10 @@ void GameScene::Initialize() {
 	enemyFighterBody_.reset(Model::CreateFromOBJ("needle_Body", true));
 	enemyFighterL_arm_.reset(Model::CreateFromOBJ("needle_L_arm", true));
 	enemyFighterR_arm_.reset(Model::CreateFromOBJ("needle_R_arm", true));
+
+	//enemyFighterBody_.reset(Model::CreateFromOBJ("needle_Body2", true));
+	//enemyFighterL_arm_.reset(Model::CreateFromOBJ("needle_L_arm2", true));
+	//enemyFighterR_arm_.reset(Model::CreateFromOBJ("needle_R_arm2", true));
 
 	// 敵のモデル
 	std::vector<Model*> enemyModels = {
@@ -78,10 +82,10 @@ void GameScene::Initialize() {
 
 	// 敵の初期化
 	enemy_->Initialize(enemyModels);
-
-
+	
+	enemy_->SetPlayer(player_.get());
+	
 #pragma endregion
-
 
 #pragma region 天球
 	
@@ -92,9 +96,7 @@ void GameScene::Initialize() {
 	skydome_->Initialize(skydomeModel_.get());
 	
 #pragma endregion
-
-	
-
+		
 	// フォローカメラ
 	followCamera_ = std::make_unique<FollowCamera>();
 	followCamera_->Initialize();
@@ -113,6 +115,7 @@ void GameScene::Initialize() {
 
 void GameScene::Update() 
 {
+
 	if (input_->TriggerKey(DIK_K) == isDebugCameraActive_ == false) {
 		isDebugCameraActive_ = true;
 
@@ -128,10 +131,7 @@ void GameScene::Update()
 
 		viewProjection_.matView = debugCamera_->GetViewProjection().matView;
 		viewProjection_.matProjection = debugCamera_->GetViewProjection().matProjection;
-
-		// viewProjection_.matView = followCamera_->GetViewProjection().matView;
-		// viewProjection_.matProjection = followCamera_->GetViewProjection().matProjection;
-
+				
 		// ビュープロジェクション行列の転送
 		viewProjection_.TransferMatrix();
 
@@ -144,10 +144,7 @@ void GameScene::Update()
 
 		viewProjection_.matView = followCamera_->GetViewProjection().matView;
 		viewProjection_.matProjection = followCamera_->GetViewProjection().matProjection;
-
-		// viewProjection_.matView = debugCamera_->GetViewProjection().matView;
-		// viewProjection_.matProjection = debugCamera_->GetViewProjection().matProjection;
-
+				
 		// ビュープロジェクション行列の更新と転送
 		viewProjection_.TransferMatrix();
 	}
@@ -163,6 +160,10 @@ void GameScene::Update()
 
 	// 敵キャラの更新
 	enemy_->Update();
+
+	//当たり判定
+	AllOnCollision();
+
 }
 
 void GameScene::Draw() {
@@ -222,3 +223,63 @@ void GameScene::Draw() {
 
 #pragma endregion
 }
+
+//当たり判定
+void GameScene::AllOnCollision() 
+{ 
+	// 自弾リストの取得
+	const std::list<PlayerBullet*>& playerBullets = player_->GetBullet();
+
+	Vector3 posA, PosB;
+
+	posA = enemy_->GetWorldPosition();
+
+	for (PlayerBullet* playerBullet : playerBullets)
+	{
+		PosB = playerBullet->GetWorldPosition();
+
+		float dx;
+		float dy;
+		float dz;
+		float distance;
+		float radius = 0.5f;
+
+		dx = (PosB.x - posA.x) * (PosB.x - posA.x);
+		dy = (PosB.y - posA.y) * (PosB.y - posA.y);
+		dz = (PosB.z - posA.z) * (PosB.z - posA.z);
+
+		distance = dx + dy + dz;
+
+		if (distance <= (radius + radius) * (radius + radius))
+		{
+			//敵の描画消す
+			enemy_->OnCollision();
+
+			//次のシーンへ移動
+			isSceneEnd = true;
+
+			enemy_->Reset();
+
+
+		}
+	}
+
+}
+
+//諸々のリセット関数
+void GameScene::Reset()
+{ 
+	isSceneEnd = false;
+
+	// 自キャラモデル
+	std::vector<Model*> playerModels = {
+	    modelFighterBody_.get(), modelFighterHead_.get(), modelFighterL_arm_.get(),
+	    modelFighterR_arm_.get(), modelWeapon_.get()
+	};
+
+	// 自キャラの初期化
+	player_->Initialize(playerModels);
+
+}
+
+

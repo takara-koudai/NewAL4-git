@@ -2,6 +2,8 @@
 #include "MatrixTrans.h"
 #define _USE_MATH_DEFINES
 #include <math.h>
+#include <cassert>
+#include "Player.h"
 
 Vector3 Enemy::GetWorldPosition() 
 {
@@ -23,14 +25,14 @@ void Enemy::Initialize(const std::vector<Model*>& models)
 	worldTransformBody_.Initialize();
 	worldTransformL_arm_.Initialize();
 	worldTransformR_arm_.Initialize();
-
+		
 	// 親子関係結ぶ
 	worldTransformBody_.parent_ = &worldTransformBase_;
 	worldTransformL_arm_.parent_ = &worldTransformBody_;
 	worldTransformR_arm_.parent_ = &worldTransformBody_;
 
 	// 腕の座標指定
-	worldTransformBody_.translation_.z = 8.0f;
+	worldTransformBody_.translation_.z = 0.0f;
 	worldTransformL_arm_.translation_.x = -1.0f;
 	worldTransformR_arm_.translation_.x = 1.0f;
 	worldTransformL_arm_.translation_.y = 1.0f;
@@ -39,12 +41,33 @@ void Enemy::Initialize(const std::vector<Model*>& models)
 
 void Enemy::Update() 
 {
+	assert(player_);
+
 	// 速さ
-	const float kSpeed = 0.2f;
+	const float kSpeed = 0.3f;
 	Vector3 velocity{0.0f, 0.0f, kSpeed};
 
 	Matrix4x4 rotateMatrix = MakeRotateMatrix(worldTransformBase_.rotation_);
 
+	//自機狙う
+	/**Vector3 playerPos = player_->GetWorldPosition();
+
+	Vector3 enemyPos = GetWorldPosition();
+	
+	Vector3 result = {
+		playerPos.x - enemyPos.x, 
+		playerPos.y - enemyPos.y, 
+		playerPos.z - enemyPos.z
+	};
+
+	Vector3 resultNomalize = Normalize(result);
+
+	velocity = {
+	    resultNomalize.x * velocity.x, 
+		resultNomalize.y * velocity.y,
+	    resultNomalize.z * velocity.z
+	};*/
+	
 	// 自機のY軸回り
 	worldTransformBase_.rotation_.y += 0.02f;
 
@@ -53,18 +76,31 @@ void Enemy::Update()
 
 	// 移動量
 	worldTransformBase_.translation_ = Add(worldTransformBase_.translation_, velocity);
+
 	// 行列を定数バッファに転送
 	worldTransformBase_.UpdateMatrix();
 	worldTransformBody_.UpdateMatrix();
 	worldTransformL_arm_.UpdateMatrix();
 	worldTransformR_arm_.UpdateMatrix();
 
+	worldTransform_.UpdateMatrix();
+
 	BaseCharacter::Update();
 }
 
-void Enemy::Draw(const ViewProjection& viewProjection) 
+void Enemy::Draw(const ViewProjection& viewProjection)
 {
-	models_[0]->Draw(worldTransformBody_, viewProjection);
-	models_[1]->Draw(worldTransformL_arm_, viewProjection);
-	models_[2]->Draw(worldTransformR_arm_, viewProjection);
+	if (isDead_ == false)
+	{
+		//体だけ描画
+		models_[0]->Draw(worldTransformBody_, viewProjection);
+		//models_[1]->Draw(worldTransformL_arm_, viewProjection);
+		//models_[2]->Draw(worldTransformR_arm_, viewProjection);
+	}
+	
+}
+
+void Enemy::OnCollision() 
+{
+	isDead_ = true;
 }
