@@ -51,11 +51,12 @@ public: // メンバ関数
 
 	//当たり判定
 	void AllOnCollision();
-		
+
 	Vector3 GetEnemyPopPos() { return enemyPopPos; }
 	void SetEnemyPopPos(Vector3 pos) { enemyPopPos = pos; }
 
 	bool IsSceneEnd() { return isSceneEnd; }
+
 	void Reset();
 
 	SceneType NextScene() { return SceneType::kEndeScene; }
@@ -139,9 +140,18 @@ private: // メンバ変数
 
 	//時間制限のカウント
 	int endCount = 0;
-
-	
+		
 	bool isSceneEnd = false;
+
+	// C式
+	Sprite* fadeSprite_ = nullptr;
+	Vector4 fadeColor_ = {1.0f, 1.0f, 1.0f, 1.0f};
+
+	Sprite* OutfadeSprite_ = nullptr;
+	Vector4 OutfadeColor_ = {0.0f, 0.0f, 0.0f, 0.0f};
+
+	//フェード用
+	int Fadecount = 0;
 
 
 	/// <summary>

@@ -29,7 +29,13 @@ public:
 	SceneType NextScene() { return SceneType::kTitle; }
 
 	// 初期化用の関数
-	void Reset() { isSceneEnd = false; }
+	void Reset() 
+	{ 
+		isSceneEnd = false; 
+
+		fadeColor_ = {1.0f, 1.0f, 1.0f, 1.0f};
+
+	}
 
 private:
 
@@ -54,5 +60,8 @@ private:
 	// シーン遷移
 	bool isSceneEnd = false;
 
+	Sprite* fadeSprite_ = nullptr;
+	Vector4 fadeColor_ = {1.0f, 1.0f, 1.0f, 1.0f};
 
+	
 };

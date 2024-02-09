@@ -3,6 +3,7 @@
 #include "Model.h"
 #include "BaseCharacter.h"
 #include <vector>
+#include "Sprite.h"
 
 
 class GameScene;
@@ -65,5 +66,5 @@ private:
 
 	Player* player_ = nullptr;
 
-
+	
 };

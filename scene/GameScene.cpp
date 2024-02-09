@@ -96,7 +96,17 @@ void GameScene::Initialize() {
 	skydome_->Initialize(skydomeModel_.get());
 	
 #pragma endregion
-		
+	
+
+	// フェード用
+	uint32_t fadeTextureHandle = TextureManager::Load("fade.png");
+	fadeSprite_ = Sprite::Create(fadeTextureHandle, {0, 0} ,{1,1,1,1});
+	
+	// フェードアウト
+	uint32_t OutfadeTextureHandle = TextureManager::Load("fade.png");
+	OutfadeSprite_ = Sprite::Create(fadeTextureHandle, {0, 0}, {0,0,0,0});
+
+
 	// フォローカメラ
 	followCamera_ = std::make_unique<FollowCamera>();
 	followCamera_->Initialize();
@@ -115,6 +125,11 @@ void GameScene::Initialize() {
 
 void GameScene::Update() 
 {
+
+	//フェード開始
+	fadeColor_.w -= 0.01f;
+	fadeSprite_->SetColor(fadeColor_);
+
 
 	if (input_->TriggerKey(DIK_K) == isDebugCameraActive_ == false) {
 		isDebugCameraActive_ = true;
@@ -163,6 +178,18 @@ void GameScene::Update()
 
 	//当たり判定
 	AllOnCollision();
+
+	// フェードアウト
+	if (Fadecount >= 1) {
+
+		OutfadeColor_.w += 0.01f;
+		OutfadeSprite_->SetColor(OutfadeColor_);
+	}
+
+	if (OutfadeColor_.w >= 1.0f) 
+	{
+		isSceneEnd = true;
+	}
 
 }
 
@@ -218,6 +245,11 @@ void GameScene::Draw() {
 	/// ここに前景スプライトの描画処理を追加できる
 	/// </summary>
 
+	//フェードの白い画面
+	fadeSprite_->Draw();
+
+	OutfadeSprite_->Draw();
+
 	// スプライト描画後処理
 	Sprite::PostDraw();
 
@@ -234,8 +266,7 @@ void GameScene::AllOnCollision()
 
 	posA = enemy_->GetWorldPosition();
 
-	for (PlayerBullet* playerBullet : playerBullets)
-	{
+	for (PlayerBullet* playerBullet : playerBullets) {
 		PosB = playerBullet->GetWorldPosition();
 
 		float dx;
@@ -250,22 +281,19 @@ void GameScene::AllOnCollision()
 
 		distance = dx + dy + dz;
 
-		if (distance <= (radius + radius) * (radius + radius))
-		{
-			//敵の描画消す
+		if (distance <= (radius + radius) * (radius + radius)) {
+			// 敵の描画消す
 			enemy_->OnCollision();
 
-			//次のシーンへ移動
-			isSceneEnd = true;
+			// 次のシーンへ移動
+			//isSceneEnd = true;
+			Fadecount += 1;
 
 			enemy_->Reset();
-
-
 		}
 	}
-
+	
 }
-
 //諸々のリセット関数
 void GameScene::Reset()
 { 
@@ -279,6 +307,19 @@ void GameScene::Reset()
 
 	// 自キャラの初期化
 	player_->Initialize(playerModels);
+
+	// フェード用
+	uint32_t fadeTextureHandle = TextureManager::Load("fade.png");
+	fadeSprite_ = Sprite::Create(fadeTextureHandle, {0, 0}, {1, 1, 1, 1});
+	fadeColor_ = {1.0f, 1.0f, 1.0f, 1.0f};
+
+	// フェードアウト
+	uint32_t OutfadeTextureHandle = TextureManager::Load("fade.png");
+	OutfadeSprite_ = Sprite::Create(fadeTextureHandle, {0, 0}, {0, 0, 0, 0});
+	OutfadeColor_ = {0.0f, 0.0f, 0.0f, 0.0f};
+
+
+	Fadecount = 0;
 
 }
 

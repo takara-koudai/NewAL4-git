@@ -47,11 +47,14 @@ void Player::Initialize(const std::vector<Model*>& models) {
 	worldTransformBody_.translation_ = {0.0f, 1.0f, 0.0f};
 
 	// 腕の座標指定
-	worldTransformHead_.translation_.y = 1.5f;
+	worldTransformHead_.translation_.y = 2.0f;
 	worldTransformL_arm_.translation_.x = -0.5f;
-	worldTransformL_arm_.translation_.y = 1.3f;
+	worldTransformL_arm_.translation_.y = 1.0f;
+	worldTransformL_arm_.rotation_.z = 1.5f;
+
 	worldTransformR_arm_.translation_.x = 0.5f;
-	worldTransformR_arm_.translation_.y = 1.3f;
+	worldTransformR_arm_.translation_.y = 0.35f;
+	worldTransformR_arm_.rotation_.z = -1.5f;
 
 }
 

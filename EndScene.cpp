@@ -19,6 +19,10 @@ void EndScene::Initialize()
 
 	endSprite = Sprite::Create(EndTextureHandle, {0, 0});
 
+	// フェード用
+	uint32_t fadeTextureHandle = TextureManager::Load("fade.png");
+	fadeSprite_ = Sprite::Create(fadeTextureHandle, {0, 0});
+	
 	// デバックカメラの生成
 	debugCamera_ = new DebugCamera(1280, 720);
 
@@ -30,6 +34,12 @@ void EndScene::Initialize()
 
 void EndScene::Update() 
 {
+
+	// フェード開始
+	fadeColor_.w -= 0.01f;
+	fadeSprite_->SetColor(fadeColor_);
+
+
 	XINPUT_STATE joyState;
 	// ゲームパッド状態取得
 	if (Input::GetInstance()->GetJoystickState(0, joyState)) 
@@ -37,8 +47,10 @@ void EndScene::Update()
 		if (joyState.Gamepad.wButtons & XINPUT_GAMEPAD_B) 
 		{
 			isSceneEnd = true;
+
 		}
 	}
+
 }
 
 void EndScene::Draw() 
@@ -76,6 +88,10 @@ void EndScene::Draw()
 	///< summary>
 	/// ここに前景スプライトの描画処理を追加できる
 	///</summary>
+
+	// フェードの白い画面
+	fadeSprite_->Draw();
+	//OutfadeSprite_->Draw();
 
 	// スプライト描画後処理
 	Sprite::PostDraw();

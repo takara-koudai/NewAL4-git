@@ -4,6 +4,7 @@
 #include <math.h>
 #include <cassert>
 #include "Player.h"
+#include "TextureManager.h"
 
 Vector3 Enemy::GetWorldPosition() 
 {
@@ -37,10 +38,13 @@ void Enemy::Initialize(const std::vector<Model*>& models)
 	worldTransformR_arm_.translation_.x = 1.0f;
 	worldTransformL_arm_.translation_.y = 1.0f;
 	worldTransformR_arm_.translation_.y = 1.0f;
+
+	
 }
 
 void Enemy::Update() 
 {
+
 	assert(player_);
 
 	// 速さ
@@ -48,25 +52,6 @@ void Enemy::Update()
 	Vector3 velocity{0.0f, 0.0f, kSpeed};
 
 	Matrix4x4 rotateMatrix = MakeRotateMatrix(worldTransformBase_.rotation_);
-
-	//自機狙う
-	/**Vector3 playerPos = player_->GetWorldPosition();
-
-	Vector3 enemyPos = GetWorldPosition();
-	
-	Vector3 result = {
-		playerPos.x - enemyPos.x, 
-		playerPos.y - enemyPos.y, 
-		playerPos.z - enemyPos.z
-	};
-
-	Vector3 resultNomalize = Normalize(result);
-
-	velocity = {
-	    resultNomalize.x * velocity.x, 
-		resultNomalize.y * velocity.y,
-	    resultNomalize.z * velocity.z
-	};*/
 	
 	// 自機のY軸回り
 	worldTransformBase_.rotation_.y += 0.02f;
@@ -97,10 +82,11 @@ void Enemy::Draw(const ViewProjection& viewProjection)
 		//models_[1]->Draw(worldTransformL_arm_, viewProjection);
 		//models_[2]->Draw(worldTransformR_arm_, viewProjection);
 	}
-	
+
 }
 
 void Enemy::OnCollision() 
 {
+
 	isDead_ = true;
 }

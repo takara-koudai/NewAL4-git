@@ -128,6 +128,10 @@ public: // メンバ関数
 	/// </summary>
 	/// <param name="position">座標</param>
 	void SetPosition(const Vector2& position);
+	//void SetPosition2(const Vector2& position);
+	//void SetPosition3(const Vector2& position);
+	//void SetPosition4(const Vector2& position);
+	//void SetPosition5(const Vector2& position);
 
 	const Vector2& GetPosition() const { return position_; }
 
